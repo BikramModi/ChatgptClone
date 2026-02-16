@@ -44,11 +44,10 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "test1",
-  "email": "test1@gmail.com",
-  "password": "password1",
-  "role": "user",
-  "phone": "password1"
+  "name": "test3",
+  "email": "test3@gmail.com",
+  "password": "password3",
+  "phone": "9876543211"
 }
 
 ### Login a user
@@ -56,8 +55,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "test1@gmail.com",
-  "password": "password1"
+  "email": "test2@gmail.com",
+  "password": "password2"
 }
 
 ### Logout a user

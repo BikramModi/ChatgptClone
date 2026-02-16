@@ -50,6 +50,7 @@ import { loginValidator } from "../validators/auth.js";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import Session from "../models/Session.js";
+import AuditLog from "../models/auditLog.js";
 
 const AUTH_ROUTER = Router();
 
@@ -96,21 +97,51 @@ AUTH_ROUTER.post(
 // });
 
 
+
 AUTH_ROUTER.post("/logout", async (req, res) => {
-  const { refreshToken } = req.cookies;
+  try {
+    const { refreshToken } = req.cookies;
 
-  if (refreshToken) {
-    await Session.updateOne(
-      { refreshToken },
-      { isValid: false }
-    );
+    if (refreshToken) {
+      // 1️⃣ Find the session first
+      const session = await Session.findOne({ refreshToken });
+
+      if (session) {
+        // 2️⃣ Revoke session
+        session.revokedAt = new Date();
+        session.isValid = false;
+        await session.save();
+
+        // 3️⃣ Create audit log
+        try {
+          await AuditLog.create({
+            actorId: session.userId,
+            action: "USER_LOGGED_OUT",
+            entity: "User",
+            entityId: session.userId,
+            metadata: {
+              sessionId: session._id,
+              ip: req.ip,
+              userAgent: req.headers["user-agent"],
+            },
+          });
+        } catch (auditErr) {
+          console.error("Audit log failed:", auditErr);
+        }
+      }
+    }
+
+    // 4️⃣ Clear cookies
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    return res.json({ message: "Logged out" });
+
+  } catch (error) {
+    return res.status(500).json({ message: "Logout failed" });
   }
-
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
-
-  res.json({ message: "Logged out" });
 });
+
 
 
 

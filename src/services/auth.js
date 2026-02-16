@@ -63,6 +63,8 @@ import UnauthorizedError from "../errors/unauthorized-error.js";
 import { compare } from "bcrypt";
 
 import Session from "../models/Session.js";
+import AuditLog from "../models/auditLog.js";
+
 
 export const register = async (userData, res) => {
   const user = await createUser(userData);
@@ -89,8 +91,9 @@ export const register = async (userData, res) => {
 };
 
 
-export const login = async (userData, res, req) => {
 
+
+export const login = async (userData, res, req) => {
   console.log("Login request received with data:", userData);
 
   const user = await User.findOne({ email: userData.email });
@@ -103,7 +106,11 @@ export const login = async (userData, res, req) => {
     throw new UnauthorizedError("Invalid credentials");
   }
 
-  // ✅ Use user._id, NOT decoded
+  // ✅ Update last login time
+  user.lastLoginAt = new Date();
+  await user.save();
+
+  // ✅ Create session
   const session = new Session({
     userId: user._id,
     userAgent: req.headers["user-agent"],
@@ -134,19 +141,37 @@ export const login = async (userData, res, req) => {
   session.refreshToken = refreshToken;
   await session.save();
 
+  // ✅ Set cookies
   res.cookie("accessToken", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 1000 * 60 * 5, // 5 minutes
+    maxAge: 1000 * 60 * 5,
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 1000 * 60 * 5, // 5 minutes
+    maxAge: 1000 * 60 * 5,
   });
+
+  // ✅ Create audit log
+  try {
+    await AuditLog.create({
+      actorId: user._id,
+      action: "USER_LOGGED_IN",
+      entity: "User",
+      entityId: user._id,
+      metadata: {
+        sessionId: session._id,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      },
+    });
+  } catch (err) {
+    console.error("Failed to create audit log:", err);
+  }
 
   const { password, ...userWithoutPassword } = user.toObject();
 
@@ -154,4 +179,5 @@ export const login = async (userData, res, req) => {
     user: userWithoutPassword,
   };
 };
+
 

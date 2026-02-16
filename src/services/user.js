@@ -1,11 +1,38 @@
 import User from "../models/user.js";
 import NotFoundError from "../errors/not-found-error.js";
 
-const createUser = async (userData) => {
+
+import AuditLog from "../models/auditLog.js";
+
+
+const createUser = async (userData, req = null) => {
+  // 1️⃣ Create the user
   const user = await User.create(userData);
+
+  // 2️⃣ Create audit log for this action
+  try {
+    await AuditLog.create({
+      actorId: null, // self-registration
+      action: "USER_REGISTERED",
+      entity: "User",
+      entityId: user._id,
+      metadata: {
+        email: user.email,
+        name: user.name,
+        ip: req?.ip, // optional, pass req if available
+        userAgent: req?.headers["user-agent"], // optional
+      },
+    });
+  } catch (err) {
+    console.error("Failed to create audit log:", err);
+    // Do not throw, user creation should succeed even if logging fails
+  }
+
+  // 3️⃣ Return user object without password
   const { password, ...userWithoutPassword } = user.toObject();
   return userWithoutPassword;
 };
+
 
 const getAllUsers = async (query) => {
   const {
