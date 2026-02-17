@@ -263,7 +263,7 @@ AUTH_ROUTER.post("/refresh", async (req, res) => {
         role: decoded.role,
       },
       process.env.REFRESH_SECRET,
-      { expiresIn: "5m" }
+      { expiresIn: "7d" }
     );
 
     session.refreshToken = newRefreshToken;
@@ -277,7 +277,7 @@ AUTH_ROUTER.post("/refresh", async (req, res) => {
         role: decoded.role,
       },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: "3m" }
+      { expiresIn: "3h" }
     );
 
     // Set new cookies
@@ -285,14 +285,14 @@ AUTH_ROUTER.post("/refresh", async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 1000 * 60 * 3, // 3 minutes
+      maxAge: 1000 * 60 * 60 * 3, // 3 hours
     });
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 1000 * 60 * 5, // 5 minutes
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     });
 
     res.json({ message: "Token refreshed" });

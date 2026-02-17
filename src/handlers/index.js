@@ -1,6 +1,9 @@
 import Router from "express";
 import USER_ROUTER from "./user.js";
 import AUTH_ROUTER from "./auth.js";
+
+import PREFERENCE_ROUTER from "./userPreference.handler.js";
+
 import CATEGORY_ROUTER from "./Category.js";
 import PRODUCT_ROUTER from "./Product.js";
 import CART_ROUTER from "./Cart.js";
@@ -16,6 +19,11 @@ const HANDLERS = Router();
 
 HANDLERS.use("/users", USER_ROUTER);
 HANDLERS.use("/auth", AUTH_ROUTER);
+
+HANDLERS.use("/preferences", PREFERENCE_ROUTER);
+
+
+
 HANDLERS.use("/categories", CATEGORY_ROUTER);
 HANDLERS.use("/:catId/products", PRODUCT_ROUTER);
 HANDLERS.use("/CartItems",CART_ROUTER);

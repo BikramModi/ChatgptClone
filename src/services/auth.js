@@ -75,14 +75,14 @@ export const register = async (userData, res) => {
       role: user.role,
     },
     process.env.JWT_SECRET_KEY,
-    { expiresIn: "3m" }
+    { expiresIn: "3h" }
   );
 
   res.cookie("accessToken", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", //true in production, false in development
     sameSite: "lax",
-    maxAge: 1000 * 60 * 5, // 5 minutes
+    maxAge: 1000 * 60 * 60 * 3, // 3 hours
   });
 
   return {
@@ -125,7 +125,7 @@ export const login = async (userData, res, req) => {
       role: user.role,
     },
     process.env.JWT_SECRET_KEY,
-    { expiresIn: "3m" }
+    { expiresIn: "3h" }
   );
 
   const refreshToken = jwt.sign(
@@ -135,7 +135,7 @@ export const login = async (userData, res, req) => {
       role: user.role,
     },
     process.env.REFRESH_SECRET,
-    { expiresIn: "5m" }
+    { expiresIn: "7d" }
   );
 
   session.refreshToken = refreshToken;
@@ -146,14 +146,14 @@ export const login = async (userData, res, req) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 1000 * 60 * 5,
+    maxAge: 1000 * 60 * 60 * 3, // 3 hours
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 1000 * 60 * 5,
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
   });
 
   // ✅ Create audit log
