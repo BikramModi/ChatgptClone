@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:6005
 @userId = 695bd5437b40897d96f1e21b
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk0ODE3MjkzNTA3MDMwZmMxZWU4YTkiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTM0MDE0NiwiZXhwIjoxNzcxMzUwOTQ2fQ.DjRrK9_QYoCWvRSjsi5KKit78qRfq12uP67sAYgVHoE
-@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk0ODE3MjkzNTA3MDMwZmMxZWU4YTkiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTM0MDE0NiwiZXhwIjoxNzcxOTQ0OTQ2fQ.cLfrcZoeChgnW_sWq3jXqTZb8QamPrksEWclfYrnqM8
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk1MjNhMDU4NzY3MzFlYjI0MzE2Y2YiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTM4MTY2NCwiZXhwIjoxNzcxMzkyNDY0fQ.s54L-yo_dwIWpcREDOuGOF_V_muXDCL_LxNr5RfQ5bI
+@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk1MjNhMDU4NzY3MzFlYjI0MzE2Y2YiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTM4MTY2NCwiZXhwIjoxNzcxOTg2NDY0fQ.vXMuoOz-s4gMYuUbrwYn6CrnwYZlOzYy7ONSRGEyRaU
 ### USER API-----------------------------------------------------------------
 POST {{baseUrl}}/users
 Cookie: accessToken={{token}}
@@ -91,6 +91,53 @@ Cookie: accessToken={{token}}
   "temperature": "0.7",
   "theme": "light"
 }
+
+
+
+
+### CONVERSATION API-----------------------------------------------------------------
+
+@convId=699524775876731eb24316dd
+
+### Create a new conversation
+POST {{baseUrl}}/conversations
+Content-Type: application/json
+Cookie: accessToken={{token}}
+
+{
+  "title": "My Third Conversation",
+  "model": "gpt-3.5-turbo",
+  "systemPrompt": "You are a helpful assistant.",
+  "visibility": "private",
+  "isArchived": "false"
+}
+
+### Get all conversations for the authenticated user
+GET {{baseUrl}}/conversations
+Cookie: accessToken={{token}}
+
+
+### Get a single conversation by ID
+GET {{baseUrl}}/conversations/{{convId}}
+Cookie: accessToken={{token}}
+
+### Update a conversation by ID
+PATCH {{baseUrl}}/conversations/{{convId}}
+Content-Type: application/json
+Cookie: accessToken={{token}}
+
+{
+  "title": "Updated first Conversation Title",
+  "model": "gpt-4",
+  "systemPrompt": "You are an updated helpful assistant.",
+  "visibility": "shared",
+  "isArchived": "false"
+}
+
+### Delete a conversation by ID
+DELETE {{baseUrl}}/conversations/{{convId}}
+Cookie: accessToken={{token}}
+
 
 
 
