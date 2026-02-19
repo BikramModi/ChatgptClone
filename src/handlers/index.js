@@ -12,7 +12,10 @@ import PAYMENT_ROUTER from "./Payment.js";
 import REVIEW_ROUTER from "./Review.js";
 import ESEWA_ROUTER from "./esewaPayment.js";
 import KHALTI_ROUTER from "./KhaltiPayment.js";
+
 import CONVERSATION_ROUTER from "./conversation.handler.js";
+import MESSAGE_ROUTER from "./message.handler.js";
+import MESSAGE_VERSION_ROUTER from "./messageversion.handler.js";
 
 
 const HANDLERS = Router();
@@ -23,6 +26,8 @@ HANDLERS.use("/auth", AUTH_ROUTER);
 
 HANDLERS.use("/preferences", PREFERENCE_ROUTER);
 HANDLERS.use("/conversations", CONVERSATION_ROUTER);
+HANDLERS.use("/messages", MESSAGE_ROUTER);
+HANDLERS.use("/messagesvr", MESSAGE_VERSION_ROUTER);
 
 
 
