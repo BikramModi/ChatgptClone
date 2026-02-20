@@ -16,6 +16,7 @@ import KHALTI_ROUTER from "./KhaltiPayment.js";
 import CONVERSATION_ROUTER from "./conversation.handler.js";
 import MESSAGE_ROUTER from "./message.handler.js";
 import MESSAGE_VERSION_ROUTER from "./messageversion.handler.js";
+import CONTENT_FLAG_ROUTER from "./contentflag.handler.js";
 
 
 const HANDLERS = Router();
@@ -28,6 +29,7 @@ HANDLERS.use("/preferences", PREFERENCE_ROUTER);
 HANDLERS.use("/conversations", CONVERSATION_ROUTER);
 HANDLERS.use("/messages", MESSAGE_ROUTER);
 HANDLERS.use("/messagesvr", MESSAGE_VERSION_ROUTER);
+HANDLERS.use("/flags", CONTENT_FLAG_ROUTER);
 
 
 

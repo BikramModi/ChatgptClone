@@ -1,8 +1,7 @@
 @baseUrl = http://localhost:6005
 @userId = 695bd5437b40897d96f1e21b
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk2OTMxYjRkYWEzNzIzYWVjYjVmYmIiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTQ3NTczOSwiZXhwIjoxNzcxNDg2NTM5fQ.7S7h7KagYap4fuLd2r8XNJD7kZKBWfFgsjn5yqCSO7M
-@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk2OTMxYjRkYWEzNzIzYWVjYjVmYmIiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTQ3NTczOSwiZXhwIjoxNzcyMDgwNTM5fQ.WGR4IMnLtH20IMrLJVuCRwlFk4eDSjsfRg5CrQ_t038
-### USER API-----------------------------------------------------------------
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk4MjZhMmFjMGYxYWIyMDFmMDNhMTMiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTU3OTA0MiwiZXhwIjoxNzcxNTg5ODQyfQ.l6CA5YlRGPg5PTpq7FXOOeuIb2AD-YYlX_iIPYSvC8s
+@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OTk4MjZhMmFjMGYxYWIyMDFmMDNhMTMiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MTU3OTA0MiwiZXhwIjoxNzcyMTgzODQyfQ.X1jfhi3tXhZbklIrvIKHje1JYdcvMW3Hovxdl-sAxbw; Max-Age=604800
 POST {{baseUrl}}/users
 Cookie: accessToken={{token}}
 
@@ -144,14 +143,14 @@ Cookie: accessToken={{token}}
 
 ### MESSAGE API-----------------------------------------------------------------
 
-@messageId=69968f7a48672ef526fee4a3
+@messageId=69968f7748672ef526fee4a0
 ### Add a message to a conversation
 POST {{baseUrl}}/messages/conversations/{{convId}}/messages
 Content-Type: application/json
 Cookie: accessToken={{token}}
 
 {
-  "content": "can you make it more simple?"
+  "content": "testing make it bomb simple and short"
 }
 
 ### Get all messages in a conversation
@@ -186,6 +185,49 @@ Cookie: accessToken={{token}}
 
 ### Get all versions of a message
 GET {{baseUrl}}/messagesvr/{{conversationId}}/{{messageVersionId}}/versions
+
+
+
+### CONTENT FLAG API-----------------------------------------------------------------
+
+@flagId=6998327f5ecb1b98a950e86c
+
+
+
+### Flag a message for review
+POST {{baseUrl}}/flags
+Content-Type: application/json
+Cookie: accessToken={{token}}
+
+{
+  "messageId": "{{messageId}}",
+  "category": "hate",
+  "severity": "high"
+}
+
+
+
+### Get all flagged messages (Admin only)
+GET {{baseUrl}}/flags
+Cookie: accessToken={{token}}
+
+### Update the action taken on a flagged message (Admin only)
+PATCH {{baseUrl}}/flags/{{flagId}}
+Content-Type: application/json
+Cookie: accessToken={{token}}
+
+{
+  "actionTaken": "blocked"
+}
+
+
+
+
+
+
+
+
+
 
 
 ### CATEGORY API-----------------------------------------------------------------

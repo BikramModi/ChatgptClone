@@ -9,6 +9,9 @@ import MessageVersion from "../models/messageversion.model.js";
 import Conversation from "../models/conversation.model.js";
 import axios from "axios";
 import NotFoundError from "../errors/not-found-error.js";
+import UnauthorizedError from "../errors/unauthorized-error.js";
+
+import { createContentFlagService } from "./contentflag.service.js";
 
 
 /* -------------------------------------------------- */
@@ -501,6 +504,31 @@ const estimateTokens = (text) => {
 // };
 
 
+
+export const moderateContent = (text) => {
+  const lower = text.toLowerCase();
+
+  const hateWords = ["racist", "kill all", "nazi"];
+  const violenceWords = ["bomb", "shoot", "attack"];
+  const selfHarmWords = ["suicide", "kill myself", "self harm"];
+
+  if (hateWords.some(word => lower.includes(word))) {
+    return { category: "hate", severity: "high" };
+  }
+
+  if (violenceWords.some(word => lower.includes(word))) {
+    return { category: "violence", severity: "medium" };
+  }
+
+  if (selfHarmWords.some(word => lower.includes(word))) {
+    return { category: "self-harm", severity: "high" };
+  }
+
+  return null;
+};
+
+
+
 export const addMessageService = async (
   userId,
   conversationId,
@@ -513,14 +541,56 @@ export const addMessageService = async (
   const conversation = await verifyConversationOwnership(userId, conversationId);
 
   // Save user message (skip if regenerating assistant)
-  if (!skipUserMessage) {
-    await Message.create({
+//   if (!skipUserMessage) {
+//     await Message.create({
+//       conversationId,
+//       role: "user",
+//       content,
+//       tokenCount: estimateTokens(content),
+//     });
+//   }
+
+
+// 🛡️ Moderate USER message first
+if (!skipUserMessage) {
+  const moderationResult = moderateContent(content);
+
+  if (moderationResult) {
+    console.log("🚩 User message flagged:", moderationResult);
+
+    // Save flagged message (optional but recommended for audit)
+    const flaggedMessage = await Message.create({
       conversationId,
       role: "user",
       content,
       tokenCount: estimateTokens(content),
+      
     });
+
+    // Create ContentFlag entry
+    await createContentFlagService(
+      flaggedMessage._id,
+      moderationResult.category,
+      moderationResult.severity
+    );
+
+    // ❌ Stop AI generation
+    throw new UnauthorizedError("Your message violates content policy.");
   }
+
+  // ✅ Safe → Save normally
+  await Message.create({
+    conversationId,
+    role: "user",
+    content,
+    tokenCount: estimateTokens(content),
+  });
+}
+
+
+
+
+
 
   // Build conversation history
   let history = await buildConversationHistory(conversationId);
