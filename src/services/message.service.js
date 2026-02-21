@@ -13,6 +13,10 @@ import UnauthorizedError from "../errors/unauthorized-error.js";
 
 import { createContentFlagService } from "./contentflag.service.js";
 
+import { updateUsageMetric } from "./usagemetric.service.js";
+
+import { checkUsageLimit } from "./usagemetric.service.js";
+
 
 /* -------------------------------------------------- */
 /* VERIFY OWNERSHIP */
@@ -20,18 +24,18 @@ import { createContentFlagService } from "./contentflag.service.js";
 
 const verifyConversationOwnership = async (userId, conversationId) => {
 
-console.log("Verifying ownership for userId:", userId, "conversationId:", conversationId);
+    console.log("Verifying ownership for userId:", userId, "conversationId:", conversationId);
 
-  const conversation = await Conversation.findOne({
-    _id: conversationId,
-    userId,
-  });
+    const conversation = await Conversation.findOne({
+        _id: conversationId,
+        userId,
+    });
 
-  if (!conversation) {
-    throw new NotFoundError("Conversation not found");
-  }
+    if (!conversation) {
+        throw new NotFoundError("Conversation not found");
+    }
 
-  return conversation;
+    return conversation;
 };
 
 
@@ -40,13 +44,13 @@ console.log("Verifying ownership for userId:", userId, "conversationId:", conver
 /* -------------------------------------------------- */
 
 const buildConversationHistory = async (conversationId) => {
-  const messages = await Message.find({ conversationId })
-    .sort({ createdAt: 1 });
+    const messages = await Message.find({ conversationId })
+        .sort({ createdAt: 1 });
 
-  return messages.map((msg) => ({
-    role: msg.role,
-    content: msg.content,
-  }));
+    return messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+    }));
 };
 
 
@@ -55,7 +59,7 @@ const buildConversationHistory = async (conversationId) => {
 /* -------------------------------------------------- */
 
 const estimateTokens = (text) => {
-  return Math.ceil(text.length / 4); // simple rough estimate
+    return Math.ceil(text.length / 4); // simple rough estimate
 };
 
 
@@ -506,206 +510,248 @@ const estimateTokens = (text) => {
 
 
 export const moderateContent = (text) => {
-  const lower = text.toLowerCase();
+    const lower = text.toLowerCase();
 
-  const hateWords = ["racist", "kill all", "nazi"];
-  const violenceWords = ["bomb", "shoot", "attack"];
-  const selfHarmWords = ["suicide", "kill myself", "self harm"];
+    const hateWords = ["racist", "kill all", "nazi"];
+    const violenceWords = ["bomb", "shoot", "attack"];
+    const selfHarmWords = ["suicide", "kill myself", "self harm"];
 
-  if (hateWords.some(word => lower.includes(word))) {
-    return { category: "hate", severity: "high" };
-  }
+    if (hateWords.some(word => lower.includes(word))) {
+        return { category: "hate", severity: "high" };
+    }
 
-  if (violenceWords.some(word => lower.includes(word))) {
-    return { category: "violence", severity: "medium" };
-  }
+    if (violenceWords.some(word => lower.includes(word))) {
+        return { category: "violence", severity: "medium" };
+    }
 
-  if (selfHarmWords.some(word => lower.includes(word))) {
-    return { category: "self-harm", severity: "high" };
-  }
+    if (selfHarmWords.some(word => lower.includes(word))) {
+        return { category: "self-harm", severity: "high" };
+    }
 
-  return null;
+    return null;
 };
 
 
 
 export const addMessageService = async (
-  userId,
-  conversationId,
-  content,
-  res = null,
-  options = {}
-) => {
-  const { skipUserMessage = false } = options;
-
-  const conversation = await verifyConversationOwnership(userId, conversationId);
-
-  // Save user message (skip if regenerating assistant)
-//   if (!skipUserMessage) {
-//     await Message.create({
-//       conversationId,
-//       role: "user",
-//       content,
-//       tokenCount: estimateTokens(content),
-//     });
-//   }
-
-
-// 🛡️ Moderate USER message first
-if (!skipUserMessage) {
-  const moderationResult = moderateContent(content);
-
-  if (moderationResult) {
-    console.log("🚩 User message flagged:", moderationResult);
-
-    // Save flagged message (optional but recommended for audit)
-    const flaggedMessage = await Message.create({
-      conversationId,
-      role: "user",
-      content,
-      tokenCount: estimateTokens(content),
-      
-    });
-
-    // Create ContentFlag entry
-    await createContentFlagService(
-      flaggedMessage._id,
-      moderationResult.category,
-      moderationResult.severity
-    );
-
-    // ❌ Stop AI generation
-    throw new UnauthorizedError("Your message violates content policy.");
-  }
-
-  // ✅ Safe → Save normally
-  await Message.create({
+    userId,
     conversationId,
-    role: "user",
     content,
-    tokenCount: estimateTokens(content),
-  });
-}
+    res = null,
+    options = {}
+) => {
+    const { skipUserMessage = false } = options;
+
+    const conversation = await verifyConversationOwnership(userId, conversationId);
+
+    // Save user message (skip if regenerating assistant)
+    //   if (!skipUserMessage) {
+    //     await Message.create({
+    //       conversationId,
+    //       role: "user",
+    //       content,
+    //       tokenCount: estimateTokens(content),
+    //     });
+    //   }
 
 
+    // 🛡️ Moderate USER message first
+    if (!skipUserMessage) {
+        const moderationResult = moderateContent(content);
 
+        if (moderationResult) {
+            console.log("🚩 User message flagged:", moderationResult);
 
+            // Save flagged message (optional but recommended for audit)
+            const flaggedMessage = await Message.create({
+                conversationId,
+                role: "user",
+                content,
+                tokenCount: estimateTokens(content),
 
+            });
 
-  // Build conversation history
-  let history = await buildConversationHistory(conversationId);
-  if (conversation.systemPrompt) {
-    history.unshift({ role: "system", content: conversation.systemPrompt });
-  }
+            // Create ContentFlag entry
+            await createContentFlagService(
+                flaggedMessage._id,
+                moderationResult.category,
+                moderationResult.severity
+            );
 
-  const startTime = Date.now();
-
-  // STREAMING mode
-  if (res) {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    let fullResponse = "";
-
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "X-Title": "MERN ChatBot",
-        },
-        body: JSON.stringify({
-          model: conversation.model || "mistralai/devstral-small",
-          messages: history,
-          stream: true,
-        }),
-      });
-
-      if (!response.body) throw new Error("No response body from OpenRouter");
-
-      for await (const chunk of response.body) {
-        const lines = chunk.toString().split("\n").filter(Boolean);
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const data = line.replace("data: ", "");
-          if (data === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(data);
-            const token =
-              parsed?.choices?.[0]?.delta?.content ||
-              parsed?.choices?.[0]?.message?.content;
-
-            if (token) {
-              fullResponse += token;
-              res.write(`data: ${token}\n\n`);
-            }
-          } catch (err) {}
+            // ❌ Stop AI generation
+            throw new UnauthorizedError("Your message violates content policy.");
         }
-      }
 
-      // Save assistant message after streaming
-      const latency = Date.now() - startTime;
-      await Message.create({
-        conversationId,
-        role: "assistant",
-        content: fullResponse,
-        tokenCount: estimateTokens(fullResponse),
-        latencyMs: latency,
-        status: "completed",
-      });
+        // ✅ Safe → Save normally
+        await Message.create({
+            conversationId,
+            role: "user",
+            content,
+            tokenCount: estimateTokens(content),
+        });
 
-      await Conversation.findByIdAndUpdate(conversationId, { updatedAt: new Date() });
 
-      res.write(`data: [DONE]\n\n`);
-      res.end();
+        await checkUsageLimit(userId);
 
-      return fullResponse; // return AI text
-    } catch (err) {
-      console.error("Streaming failed:", err);
-      res.write(`data: [DONE]\n\n`);
-      res.end();
-      return ""; // fallback
+
+
     }
-  }
 
-  // NON-STREAM mode
-  try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: conversation.model || "mistralai/devstral-small",
-        messages: history,
-      }),
-    });
 
-    const data = await response.json();
-    const fullResponse = data?.choices?.[0]?.message?.content || "⚠️ AI returned empty response";
 
-    // Save assistant message
-    const latency = Date.now() - startTime;
-    await Message.create({
-      conversationId,
-      role: "assistant",
-      content: fullResponse,
-      tokenCount: estimateTokens(fullResponse),
-      latencyMs: latency,
-      status: "completed",
-    });
 
-    await Conversation.findByIdAndUpdate(conversationId, { updatedAt: new Date() });
 
-    return fullResponse; // ✅ return AI content for regeneration
-  } catch (err) {
-    console.error("Non-stream AI fetch failed:", err);
-    throw new Error("Failed to generate AI response");
-  }
+
+    // Build conversation history
+    let history = await buildConversationHistory(conversationId);
+    if (conversation.systemPrompt) {
+        history.unshift({ role: "system", content: conversation.systemPrompt });
+    }
+
+    const startTime = Date.now();
+
+    // STREAMING mode
+    if (res) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        let fullResponse = "";
+
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json",
+                    "X-Title": "MERN ChatBot",
+                },
+                body: JSON.stringify({
+                    model: conversation.model || "mistralai/devstral-small",
+                    messages: history,
+                    stream: true,
+                }),
+            });
+
+            if (!response.body) throw new Error("No response body from OpenRouter");
+
+            for await (const chunk of response.body) {
+                const lines = chunk.toString().split("\n").filter(Boolean);
+                for (const line of lines) {
+                    if (!line.startsWith("data:")) continue;
+                    const data = line.replace("data: ", "");
+                    if (data === "[DONE]") break;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        const token =
+                            parsed?.choices?.[0]?.delta?.content ||
+                            parsed?.choices?.[0]?.message?.content;
+
+                        if (token) {
+                            fullResponse += token;
+                            res.write(`data: ${token}\n\n`);
+                        }
+                    } catch (err) { }
+                }
+            }
+
+            // Save assistant message after streaming
+            const latency = Date.now() - startTime;
+            await Message.create({
+                conversationId,
+                role: "assistant",
+                content: fullResponse,
+                tokenCount: estimateTokens(fullResponse),
+                latencyMs: latency,
+                status: "completed",
+            });
+
+
+
+            //calculate cost
+            const totalTokens = estimateTokens(fullResponse);
+            const costPer1k = 0.002;
+            const cost = (totalTokens / 1000) * costPer1k;
+
+
+
+            // 🔥 CALL USAGE UPDATE RIGHT HERE
+            await updateUsageMetric(
+                userId,
+                estimateTokens(fullResponse),
+                cost
+            );
+
+
+
+            await Conversation.findByIdAndUpdate(conversationId, { updatedAt: new Date() });
+
+            res.write(`data: [DONE]\n\n`);
+            res.end();
+
+            return fullResponse; // return AI text
+        } catch (err) {
+            console.error("Streaming failed:", err);
+            res.write(`data: [DONE]\n\n`);
+            res.end();
+            return ""; // fallback
+        }
+    }
+
+    // NON-STREAM mode
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: conversation.model || "mistralai/devstral-small",
+                messages: history,
+            }),
+        });
+
+        const data = await response.json();
+        const fullResponse = data?.choices?.[0]?.message?.content || "⚠️ AI returned empty response";
+
+        // Save assistant message
+        const latency = Date.now() - startTime;
+        await Message.create({
+            conversationId,
+            role: "assistant",
+            content: fullResponse,
+            tokenCount: estimateTokens(fullResponse),
+            latencyMs: latency,
+            status: "completed",
+        });
+
+
+
+
+        const totalTokens = estimateTokens(fullResponse);
+        const costPer1k = 0.002;
+        const cost = (totalTokens / 1000) * costPer1k;
+
+
+
+        // 🔥 CALL USAGE UPDATE RIGHT HERE
+        await updateUsageMetric(
+            userId,
+            estimateTokens(fullResponse),
+            cost
+        );
+
+
+
+        await Conversation.findByIdAndUpdate(conversationId, { updatedAt: new Date() });
+
+        return fullResponse; // ✅ return AI content for regeneration
+    } catch (err) {
+        console.error("Non-stream AI fetch failed:", err);
+        throw new Error("Failed to generate AI response");
+    }
 };
 
 
@@ -776,83 +822,83 @@ if (!skipUserMessage) {
 
 
 export const finalizeResponse = async (
-  fullResponse,
-  history,
-  conversation,
-  conversationId,
-  startTime,
-  res // can be null
+    fullResponse,
+    history,
+    conversation,
+    conversationId,
+    startTime,
+    res // can be null
 ) => {
-  try {
-    // Fallback if streaming returned empty
-    if (!fullResponse || fullResponse.trim() === "") {
-      const fallback = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: conversation.model || "mistralai/devstral-small",
-            messages: history,
-          }),
+    try {
+        // Fallback if streaming returned empty
+        if (!fullResponse || fullResponse.trim() === "") {
+            const fallback = await fetch(
+                "https://openrouter.ai/api/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        model: conversation.model || "mistralai/devstral-small",
+                        messages: history,
+                    }),
+                }
+            );
+
+            const data = await fallback.json();
+            fullResponse =
+                data?.choices?.[0]?.message?.content ||
+                "⚠️ AI returned an empty response.";
         }
-      );
 
-      const data = await fallback.json();
-      fullResponse =
-        data?.choices?.[0]?.message?.content ||
-        "⚠️ AI returned an empty response.";
+        const latency = Date.now() - startTime;
+
+        // Save assistant message
+        await Message.create({
+            conversationId,
+            role: "assistant",
+            content: fullResponse,
+            tokenCount: estimateTokens(fullResponse),
+            latencyMs: latency,
+            status: "completed",
+        });
+
+        // Update conversation timestamp
+        await Conversation.findByIdAndUpdate(conversationId, {
+            updatedAt: new Date(),
+        });
+
+        // STREAMING MODE
+        if (res) {
+            try {
+                res.write(`data: [DONE]\n\n`);
+                res.end();
+            } catch (err) {
+                console.error("Failed to end streaming response:", err);
+            }
+        }
+
+        // NON-STREAM MODE
+        else {
+            // nothing to do, just return the full response
+            return fullResponse;
+        }
+    } catch (err) {
+        console.error("Finalize error:", err);
+
+        if (res) {
+            if (!res.headersSent) {
+                res.status(500).json({ error: "Failed to save response" });
+            } else {
+                res.end();
+            }
+        } else {
+            // Non-stream mode: throw error so caller knows
+            throw err;
+        }
     }
-
-    const latency = Date.now() - startTime;
-
-    // Save assistant message
-    await Message.create({
-      conversationId,
-      role: "assistant",
-      content: fullResponse,
-      tokenCount: estimateTokens(fullResponse),
-      latencyMs: latency,
-      status: "completed",
-    });
-
-    // Update conversation timestamp
-    await Conversation.findByIdAndUpdate(conversationId, {
-      updatedAt: new Date(),
-    });
-
-    // STREAMING MODE
-    if (res) {
-      try {
-        res.write(`data: [DONE]\n\n`);
-        res.end();
-      } catch (err) {
-        console.error("Failed to end streaming response:", err);
-      }
-    }
-
-    // NON-STREAM MODE
-    else {
-      // nothing to do, just return the full response
-      return fullResponse;
-    }
-  } catch (err) {
-    console.error("Finalize error:", err);
-
-    if (res) {
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Failed to save response" });
-      } else {
-        res.end();
-      }
-    } else {
-      // Non-stream mode: throw error so caller knows
-      throw err;
-    }
-  }
 };
 
 
@@ -865,14 +911,14 @@ export const finalizeResponse = async (
 /* -------------------------------------------------- */
 
 export const getConversationMessagesService = async (
-  userId,
-  conversationId
+    userId,
+    conversationId
 ) => {
 
-  await verifyConversationOwnership(userId, conversationId);
+    await verifyConversationOwnership(userId, conversationId);
 
-  return await Message.find({ conversationId })
-    .sort({ createdAt: 1 });
+    return await Message.find({ conversationId })
+        .sort({ createdAt: 1 });
 };
 
 
@@ -881,29 +927,29 @@ export const getConversationMessagesService = async (
 /* -------------------------------------------------- */
 
 export const updateMessageService = async (
-  userId,
-  messageId,
-  content
+    userId,
+    messageId,
+    content
 ) => {
 
 
 
-  const message = await Message.findById(messageId);
+    const message = await Message.findById(messageId);
 
-  if (!message) throw new NotFoundError("Message not found");
+    if (!message) throw new NotFoundError("Message not found");
 
-  await verifyConversationOwnership(userId, message.conversationId);
+    await verifyConversationOwnership(userId, message.conversationId);
 
-  if (message.role !== "user") {
-    throw new NotFoundError("Only user messages can be edited");
-  }
+    if (message.role !== "user") {
+        throw new NotFoundError("Only user messages can be edited");
+    }
 
-  message.content = content;
-  message.tokenCount = estimateTokens(content);
+    message.content = content;
+    message.tokenCount = estimateTokens(content);
 
-  await message.save();
+    await message.save();
 
-  return message;
+    return message;
 };
 
 
@@ -1163,117 +1209,117 @@ export const updateMessageService = async (
 
 
 export const regenerateMessageService = async (userId, messageId, res) => {
-  console.log("🔹 Regeneration started for messageId:", messageId);
+    console.log("🔹 Regeneration started for messageId:", messageId);
 
-  // 1️⃣ Find assistant message
-  const assistantMessage = await Message.findById(messageId);
-  if (!assistantMessage) throw new Error("Message not found");
-  console.log("✅ Assistant message found:", assistantMessage._id);
+    // 1️⃣ Find assistant message
+    const assistantMessage = await Message.findById(messageId);
+    if (!assistantMessage) throw new Error("Message not found");
+    console.log("✅ Assistant message found:", assistantMessage._id);
 
-  // 2️⃣ Verify conversation ownership
-  const conversation = await verifyConversationOwnership(
-    userId,
-    assistantMessage.conversationId
-  );
-  console.log("✅ Conversation verified:", conversation._id);
+    // 2️⃣ Verify conversation ownership
+    const conversation = await verifyConversationOwnership(
+        userId,
+        assistantMessage.conversationId
+    );
+    console.log("✅ Conversation verified:", conversation._id);
 
-  if (assistantMessage.role !== "assistant") {
-    throw new Error("Only assistant messages can be regenerated");
-  }
+    if (assistantMessage.role !== "assistant") {
+        throw new Error("Only assistant messages can be regenerated");
+    }
 
-  // 3️⃣ Save current content as version
-  const version = await MessageVersion.create({
-    messageId: assistantMessage._id,
-    content: assistantMessage.content,
-    model: assistantMessage.model || "gpt-3.5",
-    tokenCount: assistantMessage.tokenCount || 0,
-  });
-  console.log("💾 Version saved with id:", version._id);
-
-  // 4️⃣ Build conversation history
-  let history = await buildConversationHistory(conversation._id);
-  if (conversation.systemPrompt) {
-    history.unshift({ role: "system", content: conversation.systemPrompt });
-  }
-  console.log("✅ Conversation history built, length:", history.length);
-
-  // 5️⃣ Setup streaming headers
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-
-  let fullResponse = "";
-  const startTime = Date.now();
-
-  try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "X-Title": "MERN ChatBot",
-      },
-      body: JSON.stringify({
-        model: conversation.model || "mistralai/devstral-small",
-        messages: history,
-        stream: true,
-      }),
+    // 3️⃣ Save current content as version
+    const version = await MessageVersion.create({
+        messageId: assistantMessage._id,
+        content: assistantMessage.content,
+        model: assistantMessage.model || "gpt-3.5",
+        tokenCount: assistantMessage.tokenCount || 0,
     });
+    console.log("💾 Version saved with id:", version._id);
 
-    if (!response.body) throw new Error("No response body from OpenRouter");
-
-    // 6️⃣ Stream chunks from AI
-    for await (const chunk of response.body) {
-      const lines = chunk.toString().split("\n").filter(Boolean);
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        const data = line.replace("data: ", "");
-        if (data === "[DONE]") break;
-
-        try {
-          const parsed = JSON.parse(data);
-          const token =
-            parsed?.choices?.[0]?.delta?.content ||
-            parsed?.choices?.[0]?.message?.content;
-
-          if (token) {
-            fullResponse += token;
-
-            // Stream chunk to frontend
-            res.write(`data: ${token}\n\n`);
-          }
-        } catch (err) {
-          console.error("Malformed AI chunk:", err);
-        }
-      }
+    // 4️⃣ Build conversation history
+    let history = await buildConversationHistory(conversation._id);
+    if (conversation.systemPrompt) {
+        history.unshift({ role: "system", content: conversation.systemPrompt });
     }
+    console.log("✅ Conversation history built, length:", history.length);
 
-    // 7️⃣ Save full response to original assistant message
-    assistantMessage.content = fullResponse;
-    assistantMessage.tokenCount = estimateTokens(fullResponse);
-    assistantMessage.model = conversation.model || "gpt-3.5";
-    await assistantMessage.save();
+    // 5️⃣ Setup streaming headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-    // 8️⃣ Update conversation timestamp
-    await Conversation.findByIdAndUpdate(conversation._id, { updatedAt: new Date() });
+    let fullResponse = "";
+    const startTime = Date.now();
 
-    // 9️⃣ End stream
-    res.write("data: [DONE]\n\n");
-    res.end();
-    console.log("✅ Regeneration streaming complete");
-
-  } catch (err) {
-    console.error("Streaming regeneration failed:", err);
     try {
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Failed to regenerate assistant message" });
-      } else {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json",
+                "X-Title": "MERN ChatBot",
+            },
+            body: JSON.stringify({
+                model: conversation.model || "mistralai/devstral-small",
+                messages: history,
+                stream: true,
+            }),
+        });
+
+        if (!response.body) throw new Error("No response body from OpenRouter");
+
+        // 6️⃣ Stream chunks from AI
+        for await (const chunk of response.body) {
+            const lines = chunk.toString().split("\n").filter(Boolean);
+            for (const line of lines) {
+                if (!line.startsWith("data:")) continue;
+                const data = line.replace("data: ", "");
+                if (data === "[DONE]") break;
+
+                try {
+                    const parsed = JSON.parse(data);
+                    const token =
+                        parsed?.choices?.[0]?.delta?.content ||
+                        parsed?.choices?.[0]?.message?.content;
+
+                    if (token) {
+                        fullResponse += token;
+
+                        // Stream chunk to frontend
+                        res.write(`data: ${token}\n\n`);
+                    }
+                } catch (err) {
+                    console.error("Malformed AI chunk:", err);
+                }
+            }
+        }
+
+        // 7️⃣ Save full response to original assistant message
+        assistantMessage.content = fullResponse;
+        assistantMessage.tokenCount = estimateTokens(fullResponse);
+        assistantMessage.model = conversation.model || "gpt-3.5";
+        await assistantMessage.save();
+
+        // 8️⃣ Update conversation timestamp
+        await Conversation.findByIdAndUpdate(conversation._id, { updatedAt: new Date() });
+
+        // 9️⃣ End stream
+        res.write("data: [DONE]\n\n");
         res.end();
-      }
-    } catch (err2) {
-      console.error("Failed to end response after error:", err2);
+        console.log("✅ Regeneration streaming complete");
+
+    } catch (err) {
+        console.error("Streaming regeneration failed:", err);
+        try {
+            if (!res.headersSent) {
+                res.status(500).json({ error: "Failed to regenerate assistant message" });
+            } else {
+                res.end();
+            }
+        } catch (err2) {
+            console.error("Failed to end response after error:", err2);
+        }
     }
-  }
 };
 
 
