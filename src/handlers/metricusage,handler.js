@@ -39,8 +39,36 @@ export const getAllUsageHandler = async (req, res, next) => {
 };
 
 
+/**
+ * @swagger
+ * /metrics/usage:
+ *   get:
+ *     summary: Get current user usage
+ *     tags: [Usage]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User usage data
+ */
 
 METRIC_ROUTER.get("/usage", getUserUsageHandler);
+
+
+
+
+/**
+ * @swagger
+ * /metrics/usage/all:
+ *   get:
+ *     summary: Get all usage data
+ *     tags: [Usage]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All usage data
+ */
 METRIC_ROUTER.get("/usage/all", getAllUsageHandler);
 
 export default METRIC_ROUTER;

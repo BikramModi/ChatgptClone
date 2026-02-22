@@ -7,6 +7,10 @@ import cors from "cors";
 
 import cookieParser from "cookie-parser";
 
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
+
+
 const SERVER = express();
 
 const PORT = process.env.PORT;
@@ -30,6 +34,12 @@ SERVER.use((req, res, next) => {
 */
 
 //SERVER.use(express.json());
+
+
+
+
+SERVER.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 
 SERVER.use(

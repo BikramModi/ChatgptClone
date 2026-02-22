@@ -54,6 +54,34 @@ import AuditLog from "../models/auditLog.js";
 
 const AUTH_ROUTER = Router();
 
+
+
+
+
+
+
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: User created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
+
 AUTH_ROUTER.post(
   "/register",
   useValidator(createUserValidator),
@@ -66,6 +94,26 @@ AUTH_ROUTER.post(
     }
   }
 );
+
+
+
+
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login user (sets accessToken & refreshToken cookies)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
 
 AUTH_ROUTER.post(
   "/login",
