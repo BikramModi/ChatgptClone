@@ -106,9 +106,96 @@ export const deleteConversationHandler = async (req, res, next) => {
 
 
 
+/**
+ * @swagger
+ * /conversations:
+ *   post:
+ *     summary: Create a new conversation
+ *     description: Creates a new conversation for the authenticated user.
+ *     tags: [Conversations]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateConversationRequest'
+ *     responses:
+ *       201:
+ *         description: Conversation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Conversation'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+
 CONVERSATION_ROUTER.post("/", createConversationHandler);
 CONVERSATION_ROUTER.get("/", getUserConversationsHandler);
 CONVERSATION_ROUTER.get("/:id", getSingleConversationHandler);
+
+
+
+/**
+ * @swagger
+ * /conversations/{id}:
+ *   patch:
+ *     summary: Update a conversation
+ *     description: Updates a conversation that belongs to the authenticated user.
+ *     tags: [Conversations]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 65f2c8b5d4e123456789abcd
+ *         description: MongoDB ObjectId of the conversation
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateConversationRequest'
+ *     responses:
+ *       200:
+ *         description: Conversation updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Conversation'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of conversation
+ *       404:
+ *         description: Conversation not found
+ *       500:
+ *         description: Internal server error
+ */
+
 CONVERSATION_ROUTER.patch("/:id", updateConversationHandler);
 CONVERSATION_ROUTER.delete("/:id", deleteConversationHandler);
 

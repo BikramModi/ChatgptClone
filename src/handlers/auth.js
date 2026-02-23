@@ -145,6 +145,33 @@ AUTH_ROUTER.post(
 // });
 
 
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Logout user and revoke refresh session
+ *     description: >
+ *       Logs out the current user by revoking the refresh token session,
+ *       creating an audit log entry, and clearing authentication cookies.
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Logged out
+ *       401:
+ *         description: Unauthorized - No valid session found
+ *       500:
+ *         description: Internal server error during logout
+ */
 
 AUTH_ROUTER.post("/logout", async (req, res) => {
   try {
@@ -192,6 +219,28 @@ AUTH_ROUTER.post("/logout", async (req, res) => {
 
 
 
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     description: Returns the currently logged-in user's information using the access token stored in HTTP-only cookies.
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized - Missing or invalid access token
+ */
 
 AUTH_ROUTER.get("/me", async (req, res) => {
   try {
@@ -285,6 +334,34 @@ AUTH_ROUTER.get("/me", async (req, res) => {
 //   }
 // });
 
+
+
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh access token using refresh token
+ *     description: >
+ *       Verifies the refresh token from HTTP-only cookies,
+ *       validates the session, rotates the refresh token,
+ *       and issues a new access token.
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Access token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Token refreshed
+ *       401:
+ *         description: Unauthorized - Missing, expired, or invalid refresh token
+ */
 
 AUTH_ROUTER.post("/refresh", async (req, res) => {
   try {

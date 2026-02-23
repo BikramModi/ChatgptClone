@@ -13,9 +13,21 @@ import  Router  from "express";
 const PREFERENCE_ROUTER = Router();
 
 
-
 /**
- * GET /preferences
+ * @swagger
+ * /preferences/get:
+ *   get:
+ *     summary: Get current user's preferences
+ *     tags: [Preferences]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User preferences fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserPreference'
  */
 
 PREFERENCE_ROUTER.get("/get", async (req, res, next) => {
@@ -33,8 +45,37 @@ PREFERENCE_ROUTER.get("/get", async (req, res, next) => {
   }
 });
 
+
+
+
 /**
- * PATCH /preferences
+ * @swagger
+ * /preferences/update:
+ *   patch:
+ *     summary: Update user preferences
+ *     tags: [Preferences]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               defaultModel:
+ *                 type: string
+ *               temperature:
+ *                 type: number
+ *               tone:
+ *                 type: string
+ *                 enum: [formal, casual]
+ *               theme:
+ *                 type: string
+ *                 enum: [light, dark]
+ *     responses:
+ *       200:
+ *         description: Preferences updated successfully
  */
 
 PREFERENCE_ROUTER.patch("/update", async (req, res, next) => {
