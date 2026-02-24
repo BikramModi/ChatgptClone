@@ -123,7 +123,71 @@ export const regenerateMessageHandler = async (req, res, next) => {
 
 
 
+
+
+
+/**
+ * @swagger
+ * /messages/conversations/{id}/messages:
+ *   post:
+ *     summary: Send a message and stream AI response
+ *     description: >
+ *       Sends a user message to a conversation and streams the AI assistant response
+ *       in real-time using Server-Sent Events (SSE).
+ *       Requires authentication and conversation ownership.
+ *     tags: [Messages]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 65f2c8b5d4e123456789abcd
+ *         description: MongoDB ObjectId of the conversation
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: Explain event-driven architecture.
+ *     responses:
+ *       200:
+ *         description: Streaming AI response
+ *         content:
+ *           text/event-stream:
+ *             schema:
+ *               type: string
+ *               example: |
+ *                 data: Hello
+ *
+ *                 data:  world
+ *
+ *                 data: [DONE]
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of conversation
+ *       404:
+ *         description: Conversation not found
+ *       500:
+ *         description: Internal server error
+ */
+
+
 MESSAGE_ROUTER.post("/conversations/:id/messages", addMessageHandler);
+
+
+
 MESSAGE_ROUTER.get("/conversations/:id/messages", getConversationMessagesHandler);
 MESSAGE_ROUTER.patch("/messages/:id", updateMessageHandler);
 MESSAGE_ROUTER.post("/messages/:id/regenerate", regenerateMessageHandler);

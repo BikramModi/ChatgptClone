@@ -143,7 +143,84 @@ export const deleteConversationHandler = async (req, res, next) => {
  */
 
 CONVERSATION_ROUTER.post("/", createConversationHandler);
+
+
+
+/**
+ * @swagger
+ * /conversations:
+ *   get:
+ *     summary: Get all conversations for the authenticated user
+ *     description: Returns all conversations that belong to the currently authenticated user.
+ *     tags: [Conversations]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Conversations retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Conversation'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 CONVERSATION_ROUTER.get("/", getUserConversationsHandler);
+
+
+
+
+/**
+ * @swagger
+ * /conversations/{id}:
+ *   get:
+ *     summary: Get a single conversation by ID
+ *     description: Returns a specific conversation that belongs to the authenticated user.
+ *     tags: [Conversations]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 65f2c8b5d4e123456789abcd
+ *         description: MongoDB ObjectId of the conversation
+ *     responses:
+ *       200:
+ *         description: Conversation retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Conversation'
+ *       400:
+ *         description: Invalid conversation ID format
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of conversation
+ *       404:
+ *         description: Conversation not found
+ *       500:
+ *         description: Internal server error
+ */
 CONVERSATION_ROUTER.get("/:id", getSingleConversationHandler);
 
 
@@ -197,6 +274,54 @@ CONVERSATION_ROUTER.get("/:id", getSingleConversationHandler);
  */
 
 CONVERSATION_ROUTER.patch("/:id", updateConversationHandler);
+
+
+
+
+/**
+ * @swagger
+ * /conversations/{id}:
+ *   delete:
+ *     summary: Archive a conversation
+ *     description: >
+ *       Archives (soft deletes) a conversation that belongs to the authenticated user.
+ *       The conversation is not permanently deleted but marked as archived.
+ *     tags: [Conversations]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 65f2c8b5d4e123456789abcd
+ *         description: MongoDB ObjectId of the conversation
+ *     responses:
+ *       200:
+ *         description: Conversation archived successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Conversation archived successfully
+ *       400:
+ *         description: Invalid conversation ID format
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of conversation
+ *       404:
+ *         description: Conversation not found
+ *       500:
+ *         description: Internal server error
+ */
 CONVERSATION_ROUTER.delete("/:id", deleteConversationHandler);
 
 export default CONVERSATION_ROUTER;
