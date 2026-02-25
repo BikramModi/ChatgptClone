@@ -187,9 +187,160 @@ export const regenerateMessageHandler = async (req, res, next) => {
 MESSAGE_ROUTER.post("/conversations/:id/messages", addMessageHandler);
 
 
-
+/**
+ * @swagger
+ * /messages/conversations/{id}/messages:
+ *   get:
+ *     summary: Get all messages of a conversation
+ *     description: >
+ *       Retrieves all messages belonging to a specific conversation.
+ *       Requires authentication and conversation ownership.
+ *     tags: [Messages]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 6995cbf355d4b1bcf410a8e6
+ *         description: MongoDB ObjectId of the conversation
+ *     responses:
+ *       200:
+ *         description: Messages retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Invalid conversation ID format
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of conversation
+ *       404:
+ *         description: Conversation not found
+ *       500:
+ *         description: Internal server error
+ */
 MESSAGE_ROUTER.get("/conversations/:id/messages", getConversationMessagesHandler);
+
+
+
+/**
+ * @swagger
+ * /messages/messages/{id}:
+ *   patch:
+ *     summary: Update a message
+ *     description: >
+ *       Updates the content of a specific message.
+ *       Requires authentication and message ownership.
+ *     tags: [Messages]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 7012abf455d4b1bcf410a111
+ *         description: MongoDB ObjectId of the message
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: Updated message content.
+ *     responses:
+ *       200:
+ *         description: Message updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of message
+ *       404:
+ *         description: Message not found
+ *       500:
+ *         description: Internal server error
+ */
 MESSAGE_ROUTER.patch("/messages/:id", updateMessageHandler);
+
+
+
+
+
+/**
+ * @swagger
+ * /messages/messages/{id}/regenerate:
+ *   post:
+ *     summary: Regenerate AI response for a message
+ *     description: >
+ *       Regenerates the AI assistant response for a specific message.
+ *       The new response is streamed in real-time using Server-Sent Events (SSE).
+ *       Requires authentication and message ownership.
+ *     tags: [Messages]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 7012abf455d4b1bcf410a111
+ *         description: MongoDB ObjectId of the message to regenerate
+ *     responses:
+ *       200:
+ *         description: Streaming regenerated AI response
+ *         content:
+ *           text/event-stream:
+ *             schema:
+ *               type: string
+ *               example: |
+ *                 data: Sure,
+ *
+ *                 data: here is a new explanation...
+ *
+ *                 data: [DONE]
+ *       400:
+ *         description: Invalid message ID format
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not owner of message
+ *       404:
+ *         description: Message not found
+ *       500:
+ *         description: Internal server error
+ */
 MESSAGE_ROUTER.post("/messages/:id/regenerate", regenerateMessageHandler);
 
 export default MESSAGE_ROUTER;
