@@ -179,49 +179,49 @@ const options = {
                     }
                 },
                 CreateConversationRequest: {
-  type: "object",
-  properties: {
-    title: {
-      type: "string",
-      example: "Startup Ideas"
-    },
-    model: {
-      type: "string",
-      example: "gpt-3.5"
-    },
-    systemPrompt: {
-      type: "string",
-      example: "You are a helpful AI mentor."
-    },
-    visibility: {
-      type: "string",
-      enum: ["private", "shared"],
-      example: "private"
-    }
-  }
-},
-UpdateConversationRequest: {
-  type: "object",
-  properties: {
-    title: {
-      type: "string",
-      example: "Updated Chat Title"
-    },
-    visibility: {
-      type: "string",
-      enum: ["private", "shared"],
-      example: "shared"
-    },
-    isArchived: {
-      type: "boolean",
-      example: true
-    },
-    systemPrompt: {
-      type: "string",
-      example: "Act as a senior software architect."
-    }
-  }
-},
+                    type: "object",
+                    properties: {
+                        title: {
+                            type: "string",
+                            example: "Startup Ideas"
+                        },
+                        model: {
+                            type: "string",
+                            example: "gpt-3.5"
+                        },
+                        systemPrompt: {
+                            type: "string",
+                            example: "You are a helpful AI mentor."
+                        },
+                        visibility: {
+                            type: "string",
+                            enum: ["private", "shared"],
+                            example: "private"
+                        }
+                    }
+                },
+                UpdateConversationRequest: {
+                    type: "object",
+                    properties: {
+                        title: {
+                            type: "string",
+                            example: "Updated Chat Title"
+                        },
+                        visibility: {
+                            type: "string",
+                            enum: ["private", "shared"],
+                            example: "shared"
+                        },
+                        isArchived: {
+                            type: "boolean",
+                            example: true
+                        },
+                        systemPrompt: {
+                            type: "string",
+                            example: "Act as a senior software architect."
+                        }
+                    }
+                },
 
 
 
@@ -266,8 +266,125 @@ UpdateConversationRequest: {
                 },
 
 
+                MessageVersion: {
+                    type: "object",
+                    properties: {
+                        _id: {
+                            type: "string",
+                            example: "65f3a9c7e4b123456789abcd"
+                        },
+                        messageId: {
+                            type: "string",
+                            description: "Reference to original message",
+                            example: "65f2d1a7c123456789abcd12"
+                        },
+                        content: {
+                            type: "string",
+                            example: "Here is an improved version of your previous answer..."
+                        },
+                        model: {
+                            type: "string",
+                            example: "gpt-3.5"
+                        },
+                        tokenCount: {
+                            type: "number",
+                            example: 180
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-26T10:00:00.000Z"
+                        }
+                    }
+                },
 
+                ContentFlag: {
+                    type: "object",
+                    properties: {
+                        _id: {
+                            type: "string",
+                            example: "65f4b2c8d4e123456789abcd"
+                        },
+                        messageId: {
+                            type: "string",
+                            description: "Reference to the flagged message",
+                            example: "65f2d1a7c123456789abcd12"
+                        },
+                        category: {
+                            type: "string",
+                            enum: ["hate", "violence", "self-harm"],
+                            example: "hate"
+                        },
+                        severity: {
+                            type: "string",
+                            enum: ["low", "medium", "high"],
+                            example: "medium"
+                        },
+                        actionTaken: {
+                            type: "string",
+                            enum: ["none", "masked", "blocked"],
+                            example: "masked"
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-26T10:30:00.000Z"
+                        },
+                        updatedAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-26T10:35:00.000Z"
+                        }
+                    }
+                },
 
+                UsageMetric: {
+                    type: "object",
+                    properties: {
+                        _id: {
+                            type: "string",
+                            example: "65f5c9a1d4e123456789abcd"
+                        },
+                        userId: {
+                            type: "string",
+                            description: "Reference to the user",
+                            example: "65f2c8b5d4e123456789abcd"
+                        },
+                        periodStart: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-01T00:00:00.000Z"
+                        },
+                        periodEnd: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-28T23:59:59.999Z"
+                        },
+                        totalMessages: {
+                            type: "number",
+                            example: 120
+                        },
+                        totalTokens: {
+                            type: "number",
+                            example: 15432
+                        },
+                        totalCost: {
+                            type: "string",
+                            description: "Total cost for the period (Decimal128 stored as string)",
+                            example: "12.75"
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-28T23:59:59.999Z"
+                        },
+                        updatedAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-02-28T23:59:59.999Z"
+                        }
+                    }
+                }
 
 
             },
@@ -285,6 +402,7 @@ UpdateConversationRequest: {
             { name: "Preferences" },
             { name: "Conversations" },
             { name: "Messages" },
+            { name: "MessageVersions" },
             { name: "Content Flags" },
             { name: "Usage" },
         ],
