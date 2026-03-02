@@ -1,6 +1,8 @@
 import UnauthorizedError from "../errors/unauthorized-error.js";
 import Conversation from "../models/conversation.model.js";
 
+import ConversationGuest from "../models/conversationguest.model.js";
+
 
 /**
  * Create Conversation
@@ -8,6 +10,19 @@ import Conversation from "../models/conversation.model.js";
 export const createConversationService = async (userId, data) => {
   const conversation = await Conversation.create({
     userId: userId,
+    title: data.title || "New Chat",
+    model: data.model || "gpt-3.5",
+    systemPrompt: data.systemPrompt || "",
+    visibility: data.visibility || "private",
+  });
+
+  return conversation;
+};
+
+//free route for guest users
+export const createConversationServiceGuest = async (data) => {
+  const conversation = await ConversationGuest.create({
+    
     title: data.title || "New Chat",
     model: data.model || "gpt-3.5",
     systemPrompt: data.systemPrompt || "",

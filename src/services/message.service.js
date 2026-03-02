@@ -5,8 +5,14 @@ import mongoose from "mongoose";
 import fetch from "node-fetch";
 
 import Message from "../models/message.model.js";
+
+import MessageGuest from "../models/messageguest.model.js";
+
 import MessageVersion from "../models/messageversion.model.js";
 import Conversation from "../models/conversation.model.js";
+
+import  ConversationGuest from "../models/conversationguest.model.js";
+
 import axios from "axios";
 import NotFoundError from "../errors/not-found-error.js";
 import UnauthorizedError from "../errors/unauthorized-error.js";
@@ -45,6 +51,20 @@ const verifyConversationOwnership = async (userId, conversationId) => {
 
 const buildConversationHistory = async (conversationId) => {
     const messages = await Message.find({ conversationId })
+        .sort({ createdAt: 1 });
+
+    return messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+    }));
+};
+
+
+
+
+//for the free guest users
+const buildConversationHistoryGuest = async (conversationId) => {
+    const messages = await MessageGuest.find({ conversationId })
         .sort({ createdAt: 1 });
 
     return messages.map((msg) => ({
@@ -751,6 +771,126 @@ export const addMessageService = async (
     } catch (err) {
         console.error("Non-stream AI fetch failed:", err);
         throw new Error("Failed to generate AI response");
+    }
+};
+
+
+//free for guest user
+export const addGuestMessageService = async (
+  conversationId,
+  content,
+  res,
+  options = {}
+) => {
+  const { skipUserMessage = false } = options;
+
+  if (!res) {
+    throw new Error("Streaming requires res object");
+  }
+
+
+// ✅ 1. Find conversation
+  const conversation = await ConversationGuest.findById(conversationId);
+
+  if (!conversation) {
+    throw new Error("Conversation not found");
+  }
+
+
+  // 🛡️ Optional moderation
+  if (!skipUserMessage) {
+    const moderationResult = moderateContent(content);
+
+    if (moderationResult) {
+      throw new Error("Your message violates content policy.");
+    }
+
+    await MessageGuest.create({
+      conversationId,
+      role: "user",
+      content,
+      tokenCount: estimateTokens(content),
+    });
+  }
+
+  const history = await buildConversationHistoryGuest(conversationId);
+     if (conversation.systemPrompt) {
+        history.unshift({ role: "system", content: conversation.systemPrompt });
+    }
+  const startTime = Date.now();
+
+  if (res) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        let fullResponse = "";
+
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json",
+                    "X-Title": "MERN ChatBot",
+                },
+                body: JSON.stringify({
+                    model: conversation.model || "mistralai/devstral-small",
+                    messages: history,
+                    stream: true,
+                }),
+            });
+
+            if (!response.body) throw new Error("No response body from OpenRouter");
+
+            for await (const chunk of response.body) {
+                const lines = chunk.toString().split("\n").filter(Boolean);
+                for (const line of lines) {
+                    if (!line.startsWith("data:")) continue;
+                    const data = line.replace("data: ", "");
+                    if (data === "[DONE]") break;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        const token =
+                            parsed?.choices?.[0]?.delta?.content ||
+                            parsed?.choices?.[0]?.message?.content;
+
+                        if (token) {
+                            fullResponse += token;
+                            res.write(`data: ${token}\n\n`);
+                        }
+                    } catch (err) { }
+                }
+            }
+
+            // Save assistant message after streaming
+            const latency = Date.now() - startTime;
+            await MessageGuest.create({
+                conversationId,
+                role: "assistant",
+                content: fullResponse,
+                tokenCount: estimateTokens(fullResponse),
+                latencyMs: latency,
+                status: "completed",
+            });
+
+
+
+
+
+            await ConversationGuest.findByIdAndUpdate(conversationId, { updatedAt: new Date() });
+
+            res.write(`data: [DONE]\n\n`);
+            res.end();
+
+            return fullResponse; // return AI text
+        } catch (err) {
+            console.error("Streaming failed:", err);
+            res.write(`data: [DONE]\n\n`);
+            res.end();
+            return ""; // fallback
+        }
     }
 };
 

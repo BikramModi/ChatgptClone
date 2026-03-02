@@ -3,6 +3,7 @@ import {
   getConversationMessagesService,
   updateMessageService,
   regenerateMessageService,
+  addGuestMessageService
 } from "../services/message.service.js";
 
 import Router  from "express";
@@ -34,6 +35,27 @@ export const addMessageHandler = async (req, res, next) => {
   }
 };
 
+
+
+
+//free for guest user
+export const addGuestMessageHandler = async (req, res, next) => {
+  try {
+    
+    const conversationId = req.params.id;
+    const { content } = req.body;
+
+    await addGuestMessageService(
+    
+      conversationId,
+      content,
+      res
+    );
+
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 /**
@@ -185,6 +207,11 @@ export const regenerateMessageHandler = async (req, res, next) => {
 
 
 MESSAGE_ROUTER.post("/conversations/:id/messages", addMessageHandler);
+
+
+
+
+MESSAGE_ROUTER.post("/conversations/:id/messages/guest", addGuestMessageHandler);
 
 
 /**

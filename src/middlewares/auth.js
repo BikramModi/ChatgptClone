@@ -76,6 +76,8 @@ const publicRoutes = [
   "/auth/register",
   "/auth/refresh",   // include refresh route
   "/auth/logout",    // include logout route
+  "/conversations/guest",  //include for guest root
+  "/messages/conversations/{{convId}}/messages/guest", //include for guest root
   "/payment/esewa/success",
   "/payment/esewa/failure",
   "/payments/webhook",

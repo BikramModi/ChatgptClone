@@ -4,6 +4,7 @@ import {
   getSingleConversationService,
   updateConversationService,
   deleteConversationService,
+  createConversationServiceGuest,
 } from "../services/conversation.service.js";
 
 import  Router  from "express";
@@ -20,6 +21,22 @@ export const createConversationHandler = async (req, res, next) => {
     const userId = req.user.userId;
 
     const conversation = await createConversationService(userId, req.body);
+
+    res.status(201).json({
+      success: true,
+      data: conversation,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const createConversationHandlerGuest = async (req, res, next) => {
+  try {
+  
+
+    const conversation = await createConversationServiceGuest(req.body);
 
     res.status(201).json({
       success: true,
@@ -143,6 +160,15 @@ export const deleteConversationHandler = async (req, res, next) => {
  */
 
 CONVERSATION_ROUTER.post("/", createConversationHandler);
+
+
+
+
+
+CONVERSATION_ROUTER.post("/guest", createConversationHandlerGuest);
+
+
+
 
 
 

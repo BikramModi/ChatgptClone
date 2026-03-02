@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:6005
 @userId = 695bd5437b40897d96f1e21b
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWEwMTJjYzBhNDMwZTkyMTM2MTc0YzUiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MjA5ODI1MiwiZXhwIjoxNzcyMTA5MDUyfQ.9OtIFiSI6-tDqOWqAXBpcMt_OCuNYMl_Q94On_Cu0qM
-@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWEwMTJjYzBhNDMwZTkyMTM2MTc0YzUiLCJ1c2VySWQiOiI2OTkyZjQ2MjIxZDczMWFkMmE5NmUzNDMiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MjA5ODI1MiwiZXhwIjoxNzcyNzAzMDUyfQ.NGSvto10fF-_0HSYP20D0N4yEC_IPnAlakoDiRw8_GI
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWE1OWQyMzdiYTgyMDJiMTdmYTVjYmUiLCJ1c2VySWQiOiI2OWE0NGEwMmJhYzZjZmVmZjZmNTUyMTUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MjQ2MTM0NywiZXhwIjoxNzcyNDcyMTQ3fQ.e7rcKXwuDhmayNWXp-QoaTVX6IIIO3zEiUZ0SY5-MhE
+@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWE1OWQyMzdiYTgyMDJiMTdmYTVjYmUiLCJ1c2VySWQiOiI2OWE0NGEwMmJhYzZjZmVmZjZmNTUyMTUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MjQ2MTM0NywiZXhwIjoxNzczMDY2MTQ3fQ.fg_vPX-jTqhJzKX_qjVbGJSN-cuHmoUvvFv0YBQe4a4
 {
   "name": "test1123",
   "email": "john.doe8123@example.com",
@@ -50,8 +50,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "test2@gmail.com",
-  "password": "password2"
+  "email": "test3@gmail.com",
+  "password": "passwordtest3"
 }
 
 ### Logout a user
@@ -93,7 +93,7 @@ Cookie: accessToken={{token}}
 
 ### CONVERSATION API-----------------------------------------------------------------
 
-@convId=6995cbf355d4b1bcf410a8e6
+@convId=69a59e087ba8202b17fa5cc6
 
 ### Create a new conversation
 POST {{baseUrl}}/conversations
@@ -108,9 +108,24 @@ Cookie: accessToken={{token}}
   "isArchived": "false"
 }
 
+
+### Create a new conversation for guest user
+POST {{baseUrl}}/conversations/guest
+Content-Type: application/json
+
+{
+  "title": "My fourth Conversation",
+  "model": "gpt-3.5-turbo",
+  "systemPrompt": "You are a helpful assistant.",
+  "visibility": "private",
+  "isArchived": "false"
+}
+
+
 ### Get all conversations for the authenticated user
 GET {{baseUrl}}/conversations
 Cookie: accessToken={{token}}
+
 
 
 ### Get a single conversation by ID
@@ -147,7 +162,16 @@ Content-Type: application/json
 Cookie: accessToken={{token}}
 
 {
-  "content": "testing make it simple and short"
+  "content": "testing make it simple "
+}
+
+
+### Add a message to a conversation by guest user for free
+POST {{baseUrl}}/messages/conversations/{{convId}}/messages/guest
+Content-Type: application/json
+
+{
+  "content": "explain in detail"
 }
 
 ### Get all messages in a conversation
