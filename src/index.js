@@ -44,8 +44,10 @@ SERVER.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 SERVER.use(
   cors({
-    origin: "http://localhost:5173", // your frontend
-    
+    origin: [
+      process.env.FRONTEND_LOCAL,
+      process.env.FRONTEND_PROD
+    ],
     credentials: true,
   })
 );

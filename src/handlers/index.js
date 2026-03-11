@@ -4,14 +4,7 @@ import AUTH_ROUTER from "./auth.js";
 
 import PREFERENCE_ROUTER from "./userPreference.handler.js";
 
-import CATEGORY_ROUTER from "./Category.js";
-import PRODUCT_ROUTER from "./Product.js";
-import CART_ROUTER from "./Cart.js";
-import ORDER_ROUTER from "./Order.js";
-import PAYMENT_ROUTER from "./Payment.js";
-import REVIEW_ROUTER from "./Review.js";
-import ESEWA_ROUTER from "./esewaPayment.js";
-import KHALTI_ROUTER from "./KhaltiPayment.js";
+
 
 import CONVERSATION_ROUTER from "./conversation.handler.js";
 import MESSAGE_ROUTER from "./message.handler.js";
@@ -35,14 +28,7 @@ HANDLERS.use("/metrics", METRIC_ROUTER);
 
 
 
-HANDLERS.use("/categories", CATEGORY_ROUTER);
-HANDLERS.use("/:catId/products", PRODUCT_ROUTER);
-HANDLERS.use("/CartItems",CART_ROUTER);
-HANDLERS.use("/orders", ORDER_ROUTER);
-HANDLERS.use("/payments", PAYMENT_ROUTER);
-HANDLERS.use("/reviews", REVIEW_ROUTER);
-HANDLERS.use("/payment/esewa", ESEWA_ROUTER);
-HANDLERS.use("/payment/khalti", KHALTI_ROUTER);
+
 
 
 export default HANDLERS;

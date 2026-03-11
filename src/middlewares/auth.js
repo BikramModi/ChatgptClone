@@ -78,13 +78,14 @@ const publicRoutes = [
   "/auth/logout",    // include logout route
   "/conversations/guest",  //include for guest root
   "/messages/conversations/{{convId}}/messages/guest", //include for guest root
-  "/payment/esewa/success",
-  "/payment/esewa/failure",
-  "/payments/webhook",
-  "/payment/khalti/verify",
+  
 ];
 
 export const authMiddleware = async (req, res, next) => {
+
+
+if (req.originalUrl.includes("/guest")) return next();
+
   if (
     publicRoutes.some((route) => req.originalUrl.startsWith(route))
   ) {

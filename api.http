@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:6005
-@userId = 695bd5437b40897d96f1e21b
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWE1OWQyMzdiYTgyMDJiMTdmYTVjYmUiLCJ1c2VySWQiOiI2OWE0NGEwMmJhYzZjZmVmZjZmNTUyMTUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MjQ2MTM0NywiZXhwIjoxNzcyNDcyMTQ3fQ.e7rcKXwuDhmayNWXp-QoaTVX6IIIO3zEiUZ0SY5-MhE
-@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWE1OWQyMzdiYTgyMDJiMTdmYTVjYmUiLCJ1c2VySWQiOiI2OWE0NGEwMmJhYzZjZmVmZjZmNTUyMTUiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MjQ2MTM0NywiZXhwIjoxNzczMDY2MTQ3fQ.fg_vPX-jTqhJzKX_qjVbGJSN-cuHmoUvvFv0YBQe4a4
+@userId = 69abcf126a23db22a37e4cea
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWFkNzQyYjZhMjNkYjIyYTM3ZTU3NmQiLCJ1c2VySWQiOiI2OWFiY2YxMjZhMjNkYjIyYTM3ZTRjZWEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MzA2NTUyNiwiZXhwIjoxNzczMDc2MzI2fQ.ZEO5KjoCfo8R5VhkCwJu5QMDhb8olVA1apaXGgESLq8
+@tokenrefresh = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWFkNzQyYjZhMjNkYjIyYTM3ZTU3NmQiLCJ1c2VySWQiOiI2OWFiY2YxMjZhMjNkYjIyYTM3ZTRjZWEiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3MzA2NTUyNiwiZXhwIjoxNzczNjcwMzI2fQ.9PIaDJp7MYCzs9GUJCIe3YKhBrhA_oSoJc4g3V-dn7M
 {
   "name": "test1123",
   "email": "john.doe8123@example.com",
@@ -39,10 +39,11 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "test3",
-  "email": "test3@gmail.com",
-  "password": "password3",
-  "phone": "9876543211"
+  "name": "admin11",
+  "email": "admin11@gmail.com",
+  "password": "passwordadmin11",
+  "phone": "9876543211",
+  "role": "admin"
 }
 
 ### Login a user
@@ -50,8 +51,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "test3@gmail.com",
-  "password": "passwordtest3"
+  "email": "test7@gmail.com",
+  "password": "passwordtest7"
 }
 
 ### Logout a user
@@ -93,7 +94,7 @@ Cookie: accessToken={{token}}
 
 ### CONVERSATION API-----------------------------------------------------------------
 
-@convId=69a59e087ba8202b17fa5cc6
+@convId=69aad2036a23db22a37e2f67
 
 ### Create a new conversation
 POST {{baseUrl}}/conversations
@@ -155,7 +156,7 @@ Cookie: accessToken={{token}}
 
 ### MESSAGE API-----------------------------------------------------------------
 
-@messageId=69968f7748672ef526fee4a0
+@messageId=69aad22e6a23db22a37e2fbb
 ### Add a message to a conversation
 POST {{baseUrl}}/messages/conversations/{{convId}}/messages
 Content-Type: application/json
@@ -201,8 +202,8 @@ Cookie: accessToken={{token}}
 
 ### MESSAGE VERSION API-----------------------------------------------------------------
 
-@messageVersionId=69968f7a48672ef526fee4a3
-@conversationId=6995cbf355d4b1bcf410a8e6
+@messageVersionId=69aad22e6a23db22a37e2fbb
+@conversationId=69aad2036a23db22a37e2f67
 
 ### Get all versions of a message
 GET {{baseUrl}}/messagesvr/{{conversationId}}/{{messageVersionId}}/versions
@@ -215,7 +216,7 @@ GET {{baseUrl}}/messagesvr/{{conversationId}}/{{messageVersionId}}/versions
 
 
 
-### Flag a message for review
+### Flag a message for review automatic system generated
 POST {{baseUrl}}/flags
 Content-Type: application/json
 Cookie: accessToken={{token}}
@@ -257,341 +258,6 @@ GET {{baseUrl}}/metrics/usage/all
 Cookie: accessToken={{token}}
 
 
-
-
-
-
-
-### CATEGORY API-----------------------------------------------------------------
-
-
-
-@catId=694d26ddbf760e85357c7f86
-
-### Create a new category      (Admin only)
-POST {{baseUrl}}/categories
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "name": "smartphones",
-  "description": "All the brands"
-}
-
-### Get all the category
-GET {{baseUrl}}/categories
-Cookie: accessToken={{token}}
-
-### Get the category by Id
-GET {{baseUrl}}/categories/{{catId}}
-Cookie: accessToken={{token}}
-### Update the category by Id     (Admin only)
-PATCH {{baseUrl}}/categories/{{catId}}
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "name": "Smartphones Updated1123",
-  "description": "All the brands"
-}
-
-### Delete the category by Id       (Admin only)
-DELETE {{baseUrl}}/categories/{{catId}}
-Cookie: accessToken={{token}}
-
-
-
-
-### PRODUCT API-----------------------------------------------------------------
-
-
-
-@catIdPro=696a325c94f6925bcd2b7d7d
-@proId=696e57e992b2d666f9fb4af9
-
-### Create a new product    (Admin only)
-POST {{baseUrl}}/{{catIdPro}}/products
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "name": "Laptops333000",
-  "description": "All the brands",
-  "price": "23",
-  "stock": "5",
-  "image": "Laptops"
-}
-
-### send form-data with image file upload example (Admin only)
- 
-POST {{baseUrl}}/{{catIdPro}}/products
-Cookie: accessToken={{token}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW0
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="name"
-
-Laptops with image
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="description"
-
-All the brands with image
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="price"
-
-25
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="originalPrice"
-
-30
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="stock"
-
-10
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="image"; filename="laptop.jpg"
-Content-Type: image/jpeg
-
-< ./profile.jpg
-------WebKitFormBoundary7MA4YWxkTrZu0gW0--
-
-
-
-
-### Get all the product
-GET {{baseUrl}}/{{catIdPro}}/products
-Cookie: accessToken={{token}}
-
-### Get the product by Id
-GET {{baseUrl}}/{{catIdPro}}/products/{{proId}}
-Cookie: accessToken={{token}}
-### Update the product by Id     (Admin only)
-PATCH {{baseUrl}}/{{catIdPro}}/products/{{proId}}    
-Cookie: accessToken={{token}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW0
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="name"
-
-Laptops with image
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="description"
-
-All the brands with image
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="price"
-
-45
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="originalPrice"
-
-70
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="stock"
-
-10
-------WebKitFormBoundary7MA4YWxkTrZu0gW0
-Content-Disposition: form-data; name="image"; filename="laptop.jpg"
-Content-Type: image/jpeg
-
-< ./book.jpg
-------WebKitFormBoundary7MA4YWxkTrZu0gW0--
-
-### Delete the product by Id     (Admin only)
-DELETE {{baseUrl}}/{{catIdPro}}/products/{{proId}}
-Cookie: accessToken={{token}}
-
-
-
-
-### ADD TO THE CART API-----------------------------------------------------------------
-
-
-
-
-
-@cartItemsId=694e1c7b900313ca9cb87d72
-
-### Create a new cartItem
-POST {{baseUrl}}/cartItems
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  
-  "product": "694a2de32858469fc7d19b9c",
-  "quantity": 3
-}
-
-### Get all the cartItems
-GET {{baseUrl}}/cartItems/getCartItems
-Cookie: accessToken={{token}}
-
-
-### Update the cartItems by Id
-PATCH {{baseUrl}}/cartItems/{{cartItemsId}}
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "quantity": 3
-  
-}
-
-### Delete the cartItems by Id
-DELETE {{baseUrl}}/cartItems/{{cartItemsId}}
-Cookie: accessToken={{token}}
-
-
-
-
-
-### ORDER API-----------------------------------------------------------------
-
-
-
-
-@ordId=695e9dc08e7375faa1f43413
-
-### Checkout and create an order
-POST {{baseUrl}}/orders/checkout
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-### get all orders for a user by the user
-GET {{baseUrl}}/orders/getMyOrders
-Cookie: accessToken={{token}}
-### get order by orderId for a user by the user
-GET {{baseUrl}}/orders/getMyOrder/{{ordId}}
-Cookie: accessToken={{token}}
-
-### get all orders of all the users by populaing (admin only)
-GET {{baseUrl}}/orders/adminonly
-Cookie: accessToken={{token}}
-
-### get all orders of  the users by orderId (admin only)
-GET {{baseUrl}}/orders/{{ordId}}/adminonly
-Cookie: accessToken={{token}}
-### Update order status by Id (admin only)
-PATCH {{baseUrl}}/orders/{{ordId}}/adminonly
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "status": "shipped"
-} 
-
-
-
-
-### PAYMENT API-----------------------------------------------------------------
-
-
-
-
-### Create a payment intent
-POST {{baseUrl}}/payments/create-payment-intent
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "orderId": "695fbc0140ebce7af00c392e",
-  "amount": 450
-}
-
-###  Create a webhook endpoint to handle Stripe events  // Use this to test webhook locally with stripe CLI
-@stripeSignatureHeader = t=1700662643,v1=abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,v0=1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
-POST {{baseUrl}}/payments/webhook
-Content-Type: application/json
-Stripe-Signature: {{stripeSignatureHeader}}
-{
-  "id": "evt_1RNDFRED2U9pkOBg0Yz3K1hL",
-  "object": "event",
-  "api_version": "2022-11-15",
-  "created": 1700662643,
-  "data": {
-    "object": {
-      "id": "pi_1RNDFRED2U9pkOBgCHSEiIHq",
-      "object": "payment_intent",
-      "amount": 69,
-      "currency": "usd",
-      "status": "succeeded"
-    }
-  },
-  "livemode": false,
-  "type": "payment_intent.succeeded"
-}
-
-
-### Esewa Create Payment Request 
-POST {{baseUrl}}/payment/esewa/initiatePayment
-Content-Type: application/json  
-Cookie: accessToken={{token}}
-
-{
-  "amount": "45",
-  "orderId": "6962152dfe1e154e5b2be968"
-}
-### Esewa Verify Payment (Automatically called by esewa using ?data=---- after payment  and make route public in auth middleware)
-GET {{baseUrl}}/payment/esewa/success?transaction_uuid=751421c3-7c88-4389-82fd-a6b7ff12aee3&total_amount=100
-Cookie: accessToken={{token}}
-
-### Khalti Create Payment Request
-POST {{baseUrl}}/payment/khalti/initiate
-Content-Type: application/json  
-Cookie: accessToken={{token}}
-
-{
-  "amount": "180",
-  "orderId": "695e9dc08e7375faa1f43413"
-}
-### Khalti Verify Payment (Called by frontend after payment)
-POST {{baseUrl}}/payment/khalti/verify?pidx=sxdAaBDq2BzY2YoYUUR7MGCmkn5JB9JzEM82ewxLwj5H&transaction_id=PPRtHANJkGxiEcjRtaa5Cn&tidx=PPRtHANJkGxiEcjRtaa5Cn&txnId=PPRtHANJkGxiEcjRtaa5Cn&amount=100&total_amount=100&mobile=98XXXXX003&status=Completed&purchase_order_id=69552a544edbea810cd2a24f&purchase_order_name=Test+Order
-Content-Type: application/json  
-Cookie: accessToken={{token}}
-
-
-
-### REVIEWS API-----------------------------------------------------------------
-
-
-
-
-
-@reviewId=694e1e0c900313ca9cb87d94
-
-### Create a new review for a product
-POST {{baseUrl}}/reviews/createReview
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "productId": "694a2de32858469fc7d19b9c",
-  "rating": 3,
-  "comment": "Great product   usr2!"
-}
-
-### Get all reviews for a product
-GET {{baseUrl}}/reviews/{{proId}}/getallReviews
-Cookie: accessToken={{token}}
-
-
-
-
-
-### Update a review by id (USER – owner only)
-PATCH {{baseUrl}}/reviews/{{reviewId}}/updateReview/useronly
-Content-Type: application/json
-Cookie: accessToken={{token}}
-
-{
-  "rating": 4,
-  "comment": "Good product, but could be improved."
-}
-
-### Delete a review by id (ADMIN)
-DELETE {{baseUrl}}/reviews/{{reviewId}}/deleteReview/adminonly
-Cookie: accessToken={{token}}
 
 
 
